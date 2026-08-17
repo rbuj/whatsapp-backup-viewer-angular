@@ -1,0 +1,282 @@
+<div class="page-shell">
+  <header class="topbar">
+    <div>
+      <p class="kicker">Versió 1.0</p>
+      <h1>Visualitzador de WhatsApp</h1>
+      <p class="subtitle">
+        Mostra els missatges de la conversa, permet filtrar missatges i analitzar-los.
+      </p>
+    </div>
+
+    <button matButton="filled" (click)="openFilePicker()">Carrega exportació</button>
+    <input
+      #chatfiles
+      type="file"
+      hidden
+      multiple
+      accept=".txt,.jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.mkv,.webm,.opus,.ogg,.mp3,.m4a,.wav,.aac,.pdf,.doc,.docx,.xlsx,.xls,.vcf"
+      (change)="onChatFilesSelected($event)"
+    />
+  </header>
+
+  @if (isLoading()) {
+    <mat-card class="status-card">
+      <p>Processant fitxers...</p>
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </mat-card>
+  }
+
+  @if (loadError()) {
+    <mat-card class="status-card status-error">
+      <p>{{ loadError() }}</p>
+    </mat-card>
+  }
+
+  @if (hasData()) {
+    <mat-card class="control-panel">
+      <mat-form-field appearance="outline" class="control-field">
+        <mat-label>Participant</mat-label>
+        <mat-select [value]="selectedParticipant()" (valueChange)="setParticipant($event)">
+          <mat-option value="all">Tots</mat-option>
+          @for (participant of participants(); track participant) {
+            <mat-option [value]="participant">{{ participant }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="control-field search-field">
+        <mat-label>Cerca al xat</mat-label>
+        <input
+          matInput
+          [value]="searchQuery()"
+          (input)="setSearchQuery($any($event.target).value)"
+        />
+      </mat-form-field>
+
+      <div class="date-range-fields">
+        <mat-form-field appearance="outline" class="control-field date-field">
+          <mat-label>Des de</mat-label>
+          <input
+            matInput
+            type="date"
+            [value]="startDate()"
+            (input)="setStartDate($any($event.target).value)"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="control-field date-field">
+          <mat-label>Fins a</mat-label>
+          <input
+            matInput
+            type="date"
+            [value]="endDate()"
+            (input)="setEndDate($any($event.target).value)"
+          />
+        </mat-form-field>
+      </div>
+
+      <mat-chip-set class="media-filters" aria-label="Filtre multimedia">
+        @for (filter of mediaFilters; track filter.value) {
+          <mat-chip-option
+            [selected]="selectedMediaFilter() === filter.value"
+            (selectionChange)="setMediaFilter(filter.value)"
+          >
+            {{ filter.label }}
+          </mat-chip-option>
+        }
+      </mat-chip-set>
+    </mat-card>
+
+    <section class="dashboard-grid">
+      <mat-card class="stats-card">
+        <p class="metric-label">Missatges</p>
+        <p class="metric-value">{{ filteredStats().totalMessages }}</p>
+      </mat-card>
+      <mat-card class="stats-card">
+        <p class="metric-label">Participants actius</p>
+        <p class="metric-value">{{ filteredStats().userActivity.length }}</p>
+      </mat-card>
+      <mat-card class="stats-card">
+        <p class="metric-label">Missatges filtrats</p>
+        <p class="metric-value">{{ filteredMessages().length }}</p>
+      </mat-card>
+      <mat-card class="stats-card">
+        <p class="metric-label">Adjunts</p>
+        <p class="metric-value">{{ totalMedia(filteredStats()) }}</p>
+      </mat-card>
+    </section>
+
+    <section class="workspace-grid">
+      <aside class="analytics-panel">
+        <mat-card class="panel-card chart-card">
+          <h2>Activitat per participant</h2>
+          <div class="chart-wrap">
+            <canvas #participantschart></canvas>
+          </div>
+        </mat-card>
+
+        @if (totalMedia(filteredStats()) > 0) {
+          <mat-card class="panel-card chart-card">
+            <!-- només es mostra si ha algun adjunt -->
+            <h2>Distribució d'adjunts</h2>
+            <div class="chart-wrap">
+              <canvas #mediachart></canvas>
+            </div>
+          </mat-card>
+        }
+
+        <mat-card class="panel-card chart-card">
+          <h2>Activitat per hora</h2>
+          <div class="chart-wrap">
+            <canvas #hourlychart></canvas>
+          </div>
+        </mat-card>
+
+        <mat-card class="panel-card chart-card">
+          <h2>Activitat per dia</h2>
+          <div class="chart-wrap">
+            <canvas #dailychart></canvas>
+          </div>
+        </mat-card>
+      </aside>
+
+      <mat-card class="conversation-panel">
+        <header class="conversation-header">
+          <h2>{{ loadedChatName() }}</h2>
+          <span>{{ filteredMessages().length }} missatges visibles</span>
+        </header>
+
+        <div class="conversation-list" (scroll)="onConversationScroll($event)">
+          @if (displayedTimelineItems().length === 0) {
+            <p class="empty-state">No hi ha missatges que compleixin aquests filtres.</p>
+          }
+
+          @if (hasMoreTimelineItems()) {
+            <p class="load-more-hint">Fes scroll amunt per carregar missatges anteriors.</p>
+          }
+
+          @for (item of displayedTimelineItems(); track trackByMessageId($index, item)) {
+            @if (item.type === 'date') {
+              <div class="date-separator">{{ formatDateLabel(item.dateLabel ?? '') }}</div>
+            } @else {
+              <article class="message" [class.message-system]="asMessage(item).isSystem">
+                <header class="message-header">
+                  <span class="message-sender">{{ asMessage(item).sender }}</span>
+                  <span>{{ asMessage(item).timeStr }}</span>
+                </header>
+
+                @if (asMessage(item).text) {
+                  <p class="message-text">{{ asMessage(item).text }}</p>
+                }
+
+                @if (asMessage(item).attachment) {
+                  <div class="attachment-box">
+                    <span class="attachment-type">{{
+                      getAttachmentLabel(asMessage(item).attachment!.mediaType)
+                    }}</span>
+
+                    @if (
+                      asMessage(item).attachment!.mediaType === 'image' &&
+                      asMessage(item).attachment!.objectUrl
+                    ) {
+                      <img
+                        class="media-thumb"
+                        [src]="asMessage(item).attachment!.objectUrl"
+                        [alt]="asMessage(item).attachment!.filename"
+                        (click)="
+                          openMediaModal(
+                            'image',
+                            asMessage(item).attachment!.objectUrl!,
+                            asMessage(item).attachment!.filename
+                          )
+                        "
+                      />
+                    }
+
+                    @if (
+                      asMessage(item).attachment!.mediaType === 'video' &&
+                      asMessage(item).attachment!.objectUrl
+                    ) {
+                      <video
+                        class="media-thumb"
+                        controls
+                        preload="metadata"
+                        [src]="asMessage(item).attachment!.objectUrl"
+                        (dblclick)="
+                          openMediaModal(
+                            'video',
+                            asMessage(item).attachment!.objectUrl!,
+                            asMessage(item).attachment!.filename
+                          )
+                        "
+                      ></video>
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="
+                          openMediaModal(
+                            'video',
+                            asMessage(item).attachment!.objectUrl!,
+                            asMessage(item).attachment!.filename
+                          )
+                        "
+                      >
+                        Veure més gran
+                      </button>
+                    }
+
+                    @if (
+                      asMessage(item).attachment!.mediaType === 'audio' &&
+                      asMessage(item).attachment!.objectUrl
+                    ) {
+                      <audio
+                        controls
+                        preload="none"
+                        [src]="asMessage(item).attachment!.objectUrl"
+                      ></audio>
+                    }
+
+                    @if (!shouldHideAttachmentFilename(asMessage(item).attachment!)) {
+                      <strong>{{ asMessage(item).attachment!.filename }}</strong>
+                    }
+                  </div>
+                }
+              </article>
+            }
+          }
+        </div>
+      </mat-card>
+    </section>
+  } @else {
+    <mat-card class="status-card">
+      <p>Selecciona l'exportació del grup de WhatsApp.</p>
+      <p>
+        Consell: selecciona alhora el fitxer <strong>_chat.txt</strong> i tots els adjunts de la
+        carpeta.
+      </p>
+    </mat-card>
+  }
+</div>
+
+@if (mediaModal(); as modal) {
+  <div class="media-modal" (click)="closeMediaModal()">
+    <div class="media-modal-content" (click)="$event.stopPropagation()">
+      <header class="media-modal-header">
+        <strong>{{ modal.filename }}</strong>
+        <button mat-button type="button" (click)="closeMediaModal()">Tanca</button>
+      </header>
+
+      @if (modal.type === 'image') {
+        <img class="media-modal-view" [src]="modal.url" [alt]="modal.filename" />
+      } @else {
+        <video
+          class="media-modal-view"
+          controls
+          autoplay
+          preload="metadata"
+          [src]="modal.url"
+        ></video>
+      }
+    </div>
+  </div>
+}

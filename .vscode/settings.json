@@ -1,0 +1,14 @@
+{
+  "material-icon-theme.activeIconPack": "angular",
+  "cSpell.language": "ca,en",
+  "cSpell.words": [
+    "chatfiles",
+    "dailychart",
+    "hourlychart",
+    "mediachart",
+    "participantschart",
+    "topbar"
+  ],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
