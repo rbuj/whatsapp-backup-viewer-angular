@@ -30,7 +30,7 @@ export function parseChatContent(content: string): ChatMessage[] {
   let groupAdminName: string | null = null;
 
   const groupCreationPattern =
-    /ha creat el grup|created the group|ha creado el grupo|has created this group/i;
+    /ha creat el grup|created the group|creó el grupo|has created this group/i;
 
   for (const rawLine of lines) {
     const line = cleanLine(rawLine);
@@ -79,12 +79,13 @@ export function parseChatContent(content: string): ChatMessage[] {
       } else {
         const systemPatterns = [
           groupCreationPattern,
-          /t'ha afegit|te ha agregado|added you/i,
-          /ha afegit|ha agregado|added/i,
+          /t'ha afegit|te añadió|added you/i,
+          /ha afegit|añadió a|added/i,
           /ha canviat la icona|changed the group icon|ha cambiado el icono/i,
+          /Cambiaste el ícono de este grupo/i,
           /ha sortit|left|salio del grupo/i,
-          /t'ha eliminat|te ha eliminado|removed you/i,
-          /ha eliminat|ha eliminado|removed/i,
+          /t'ha eliminat|te eliminó|removed you/i,
+          /ha eliminat|eliminó a|removed/i,
         ];
         if (systemPatterns.some((pattern) => pattern.test(text))) {
           isSystem = true;
