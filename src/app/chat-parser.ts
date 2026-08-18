@@ -3,7 +3,7 @@ import { AttachmentInfo, ChatMessage, MediaType } from './models';
 const HEADER_REGEX =
   /^\[(\d{1,2})\/(\d{1,2})\/(\d{2,4}),?\s+(\d{1,2}):(\d{2}):(\d{2})\]\s*([^:]+):\s*(.*)$/;
 
-const ATTACHMENT_REGEX = /<(?:adjunt|attached|archivo adjunto):\s*([^>]+)>/i;
+const ATTACHMENT_REGEX = /<(?:adjunt|attached|adjunto):\s*([^>]+)>/i;
 
 function getMediaType(filename: string): MediaType {
   const ext = filename.includes('.') ? filename.slice(filename.lastIndexOf('.')).toLowerCase() : '';
