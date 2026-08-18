@@ -6,7 +6,7 @@ import {
   OnDestroy,
   ViewChild,
   computed,
-  signal
+  signal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -46,10 +46,10 @@ interface MediaModalState {
     MatFormFieldModule,
     MatInputModule,
     MatProgressBarModule,
-    MatSelectModule
+    MatSelectModule,
   ],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class App implements AfterViewInit, OnDestroy {
   @ViewChild('participantschart') participantsChartRef?: ElementRef<HTMLCanvasElement>;
@@ -58,13 +58,13 @@ export class App implements AfterViewInit, OnDestroy {
   @ViewChild('dailychart') dailyChartRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('chatfiles') fileInputRef?: ElementRef<HTMLInputElement>;
 
-  readonly mediaFilters: Array<{ value: FilterMediaType; label: string }> = [
+  readonly mediaFilters: { value: FilterMediaType; label: string }[] = [
     { value: 'all', label: 'Tot' },
     { value: 'image', label: 'Imatges' },
     { value: 'video', label: 'Vídeos' },
     { value: 'audio', label: 'Àudios' },
     { value: 'document', label: 'Documents' },
-    { value: 'sticker', label: 'Adhesius' }
+    { value: 'sticker', label: 'Adhesius' },
   ];
 
   readonly mediaLabels: Record<MediaType | 'text', string> = {
@@ -76,7 +76,7 @@ export class App implements AfterViewInit, OnDestroy {
     sticker: 'Adhesiu',
     contact: 'Contacte',
     gif: 'Gif',
-    unknown: 'Altres'
+    unknown: 'Altres',
   };
 
   readonly allMessages = signal<ChatMessage[]>([]);
@@ -151,7 +151,7 @@ export class App implements AfterViewInit, OnDestroy {
     return allItems.slice(start);
   });
   readonly hasMoreTimelineItems = computed(
-    () => this.displayedTimelineItems().length < this.timelineItems().length
+    () => this.displayedTimelineItems().length < this.timelineItems().length,
   );
 
   readonly hasData = computed(() => this.stats() !== null);
@@ -215,7 +215,7 @@ export class App implements AfterViewInit, OnDestroy {
       this.scheduleChartRender();
     } catch (error) {
       this.loadError.set(
-        error instanceof Error ? error.message : 'Error desconegut processant el xat.'
+        error instanceof Error ? error.message : 'Error desconegut processant el xat.',
       );
       this.stats.set(null);
       this.allMessages.set([]);
@@ -290,7 +290,7 @@ export class App implements AfterViewInit, OnDestroy {
     return parsed.toLocaleDateString('ca-ES', {
       day: 'numeric',
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
     });
   }
 
@@ -401,17 +401,17 @@ export class App implements AfterViewInit, OnDestroy {
             data: topUsers.map((item) => item.count),
             backgroundColor: 'rgba(25, 118, 210, 0.7)',
             borderRadius: 8,
-            maxBarThickness: 28
-          }
-        ]
+            maxBarThickness: 28,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false }
-        }
-      }
+          legend: { display: false },
+        },
+      },
     };
 
     this.participantsChart = new Chart(canvas, config);
@@ -437,19 +437,19 @@ export class App implements AfterViewInit, OnDestroy {
           {
             data: entries.map((entry) => entry.value),
             backgroundColor: ['#ff7043', '#42a5f5', '#26a69a', '#ef5350', '#8d6e63', '#5c6bc0'],
-            borderWidth: 0
-          }
-        ]
+            borderWidth: 0,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'bottom'
-          }
-        }
-      }
+            position: 'bottom',
+          },
+        },
+      },
     };
 
     this.mediaChart = new Chart(canvas, config);
@@ -475,17 +475,17 @@ export class App implements AfterViewInit, OnDestroy {
             backgroundColor: 'rgba(46, 125, 50, 0.12)',
             fill: true,
             pointRadius: 2,
-            tension: 0.3
-          }
-        ]
+            tension: 0.3,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false }
-        }
-      }
+          legend: { display: false },
+        },
+      },
     };
 
     this.hourlyChart = new Chart(canvas, config);
@@ -514,17 +514,17 @@ export class App implements AfterViewInit, OnDestroy {
             backgroundColor: 'rgba(245, 124, 0, 0.12)',
             fill: true,
             pointRadius: 2,
-            tension: 0.3
-          }
-        ]
+            tension: 0.3,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false }
-        }
-      }
+          legend: { display: false },
+        },
+      },
     };
 
     this.dailyChart = new Chart(canvas, config);
