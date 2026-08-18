@@ -46,3 +46,5 @@ npm start       # ng serve
 npm run build   # build de producció
 npm test        # tests unitaris
 ```
+
+[![Node.js CI](https://github.com/rbuj/whatsapp-backup-viewer-angular/actions/workflows/node.yml/badge.svg)](https://github.com/rbuj/whatsapp-backup-viewer-angular/actions/workflows/node.yml)
