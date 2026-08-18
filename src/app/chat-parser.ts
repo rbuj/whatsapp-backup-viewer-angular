@@ -51,7 +51,7 @@ export function parseChatContent(content: string): ChatMessage[] {
       const second = Number.parseInt(match[6], 10);
 
       const senderRaw = match[7].trim();
-      let sender = senderRaw.replace(/^~\s*/, '').trim();
+      const sender = senderRaw.replace(/^~\s*/, '').trim();
       const rawText = match[8];
 
       const attachmentMatch = rawText.match(ATTACHMENT_REGEX);
